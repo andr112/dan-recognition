@@ -20,4 +20,6 @@
     <string name="not_connected">GoogleApiClient not yet connected. Try again.</string>
     <string name="result_title">Status(The Last Minite):</string>
     <string name="current_datas_title">Current datas:</string>
+    <string name="history">Show History</string>
+    <string name="current">Show Current</string>
 </resources>

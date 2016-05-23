@@ -14,10 +14,8 @@ public final class Constants {
     private Constants() {
     }
 
-    public static final String PACKAGE_NAME = "test.cc.com.googletest";
-
-    public static final String BROADCAST_ACTION = PACKAGE_NAME + ".BROADCAST_ACTION";
-
+    public static final String PACKAGE_NAME = "com.dan.rec";
+    public static final String BROADCAST_ACTION = "com.dan.rec.BROADCAST_ACTION";
     public static final String ACTIVITY_EXTRA = PACKAGE_NAME + ".ACTIVITY_EXTRA";
     public static final String ACTIVITY_EXTRA_TYPE = PACKAGE_NAME + ".ACTIVITY_EXTRA_TYPE";
 
@@ -29,13 +27,18 @@ public final class Constants {
     public static final String DETECTED_ACTIVITIES = PACKAGE_NAME + ".DETECTED_ACTIVITIES";
     public static final String DETECTED_RESULT = PACKAGE_NAME + ".DETECTED_RESULT";
 
+    public static final String TimeF_HM = "%tF %<tR";
+    public static final String TimeF_HMS = "%tF %<tT";
+
+    public static int Log_flag = 1;
+
     /**
      * The desired time between activity detections. Larger values result in fewer activity
      * detections while improving battery life. A value of 0 results in activity detections at the
      * fastest possible rate. Getting frequent updates negatively impact battery life and a real
      * app may prefer to request less frequent updates.
      */
-    public static final long DETECTION_INTERVAL_IN_MILLISECONDS =3000;
+    public static final long DETECTION_INTERVAL_IN_MILLISECONDS = 3000;
 
     /**
      * List of DetectedActivity types that we monitor in this sample.
@@ -57,7 +60,7 @@ public final class Constants {
      */
     public static String getActivityString(Context context, int detectedActivityType) {
         Resources resources = context.getResources();
-        switch(detectedActivityType) {
+        switch (detectedActivityType) {
             case DetectedActivity.IN_VEHICLE:
                 return resources.getString(R.string.in_vehicle);
             case DetectedActivity.ON_BICYCLE:
@@ -78,4 +81,13 @@ public final class Constants {
                 return resources.getString(R.string.unidentifiable_activity, detectedActivityType);
         }
     }
+
+    public static void updateFlag(boolean isInit) {
+        if (isInit) {
+            Log_flag = 1;
+        } else {
+            Log_flag--;
+        }
+    }
+
 }

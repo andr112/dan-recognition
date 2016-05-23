@@ -27,7 +27,7 @@ public class Recognition {
     private ActRecordTime time;
     private static Recognition instence = new Recognition();
     private static volatile String weightedResultStr;
-    private final String Block_Str="   ";
+    private final String Block_Str = "   ";
 
     public static Recognition getInstence() {
         return instence;
@@ -42,11 +42,18 @@ public class Recognition {
 
     public synchronized ArrayList<DetectedActivity> weightedMean(ArrayList<DetectedActivity> detectedActivities) throws Exception {
         ArrayList<DetectedActivity> result = null;
-        if (isByMax) {
-            result = weightedMeanByMax(detectedActivities);
-        } else {
-            weightedMeanByAverage(detectedActivities);
+        if (Constants.Log_flag == 1) {
+            if (isByMax) {
+                result = weightedMeanByMax(detectedActivities);
+            } else {
+                weightedMeanByAverage(detectedActivities);
+            }
+        } else if (Constants.Log_flag == 0) {
+            LogTrace.writeCommonLog("System Warn : App start to Background ...");
+            Constants.updateFlag(false);
+            reset();
         }
+
         return result;
     }
 
@@ -179,7 +186,7 @@ public class Recognition {
         String actN = RecognitionApplication.getContext().getResources().getString(resId);
         weightedResultStr = actN;
         float confidenceF = confidence / 100.0f;
-        LogTrace.write(tag, "writeLog result ", "result : " + weightedResultStr + Block_Str + confidenceF, false);
+        LogTrace.write(tag, " result ", "result : " + weightedResultStr + Block_Str + confidenceF, false);
         Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
         localIntent.putExtra(Constants.ACTIVITY_EXTRA_TYPE, weightedResultStr);
         LocalBroadcastManager.getInstance(RecognitionApplication.getContext()).sendBroadcast(localIntent);

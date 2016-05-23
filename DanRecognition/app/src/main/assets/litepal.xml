@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <litepal>
     <!-- 数据库名称 -->
-    <dbname value="Detections" ></dbname>
+    <dbname value="Detections"></dbname>
     <!-- 数据库版本 -->
-    <version value="1" ></version>
-	<!-- 实体类，对应于数据库中的表 -->
+    <version value="2"></version>
+    <!-- 实体类，对应于数据库中的表 -->
     <list>
-        <!-- <mapping class="com.example.litepaldemo.model.Category"></mapping> -->
+        <mapping class="com.dan.rec.db.LogItem"></mapping>
     </list>
 </litepal>
