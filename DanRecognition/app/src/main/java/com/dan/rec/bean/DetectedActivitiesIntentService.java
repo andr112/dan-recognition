@@ -2,7 +2,6 @@ package com.dan.rec.bean;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.dan.rec.utils.Constants;
 import com.dan.rec.utils.DebugLog;
@@ -49,17 +48,16 @@ public class DetectedActivitiesIntentService extends IntentService {
         // device. Each activity is associated with a confidence level, which is an int between
         // 0 and 100.
         ArrayList<DetectedActivity> detectedActivities = (ArrayList) result.getProbableActivities();
-        try {
-            ArrayList<DetectedActivity> detectedActivity = Recognition.getInstence().weightedMean(detectedActivities);
-            if (detectedActivity != null) {
-                localIntent.putExtra(Constants.ACTIVITY_EXTRA_TYPE, detectedActivity);
-            }
-        } catch (Exception e) {
-            DebugLog.i(TAG, "");
+
+        ArrayList<DetectedActivity> detectedActivity = Recognition.getInstence().weightedMean(detectedActivities);
+        if (detectedActivity != null && detectedActivity.size() > 0) {
+            localIntent.putExtra(Constants.ACTIVITY_EXTRA, detectedActivity);
+        } else {
         }
+        DebugLog.e(TAG, " onHandleIntent : " + detectedActivity);
 
         // Broadcast the list of detected activities.
         // localIntent.putExtra(Constants.ACTIVITY_EXTRA, detectedActivities);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+        sendBroadcast(localIntent);
     }
 }

@@ -1,9 +1,8 @@
 package com.dan.rec.utils;
 
-import android.content.Context;
 import android.os.Environment;
-import android.util.Log;
 
+import com.dan.rec.RecognitionApplication;
 import com.dan.rec.db.DbManager;
 import com.dan.rec.db.LogItem;
 
@@ -14,76 +13,88 @@ import java.io.IOException;
 
 public class LogTrace {
     private static String TOG_FLAG = "DanRecognition";
-
-    private static Context sContext;
+    private static LogTrace instance;
 
     public static void print(String message) {
-        Log.v(TOG_FLAG, message);
+        DebugLog.i(TOG_FLAG, message);
     }
 
-    private static FileOutputStream outputStream;
+    private FileOutputStream outputStream;
 
-    public synchronized static void init(Context context) {
+    private LogTrace() {
+    }
+
+    public static LogTrace getInstance() {
+        if (instance == null) {
+            synchronized (LogTrace.class) {
+                if (instance == null) {
+                    instance = new LogTrace();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public void init() {
         if (null == outputStream) {
-            sContext = context;
             try {
                 outputStream = new FileOutputStream(getLogFile(), true);
             } catch (FileNotFoundException e) {
+                DebugLog.e(TOG_FLAG, "init  IOException : " + e.toString());
                 e.printStackTrace();
             }
         }
     }
 
-    private static File getLogFile() {
-        String localCachePath = "";
-        if (Environment.MEDIA_MOUNTED.endsWith(Environment.getExternalStorageState())) {
-            localCachePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        } else {
-            localCachePath = sContext.getCacheDir().getAbsolutePath();
+    public void clean() {
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                DebugLog.e(TOG_FLAG, "clean  IOException : " + e.toString());
+                e.printStackTrace();
+            }
+            outputStream = null;
         }
-        localCachePath += "/" + TOG_FLAG;
-        File file = new File(localCachePath);
+    }
+
+    private String getFilePath() {
+        String file_dir = "";
+        // SD卡是否存在
+        boolean isSDCardExist = Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
+        // Environment.getExternalStorageDirectory()相当于File file=new File("/sdcard")
+        boolean isRootDirExist = Environment.getExternalStorageDirectory().exists();
+        if (isSDCardExist && isRootDirExist) {
+            file_dir = Environment.getExternalStorageDirectory().getAbsolutePath();
+        } else {
+            // MyApplication.getInstance().getFilesDir()返回的路劲为/data/data/PACKAGE_NAME/files，其中的包就是我们建立的主Activity所在的包
+            file_dir = RecognitionApplication.getInstance().getFilesDir().getAbsolutePath();
+        }
+        return file_dir + "/" + TOG_FLAG;
+    }
+
+    private File getLogFile() {
+        String filePath = getFilePath();
+        DebugLog.e(TOG_FLAG, "getLogFile localCachePath : " + filePath);
+        File file = new File(filePath);
         if (!file.exists()) {
             file.mkdir();
         }
-        file = new File(localCachePath + "/log.txt");
+        String fileName = "DebugLog.txt";
+        file = new File(file, fileName);
         if (!file.exists()) {
             try {
                 file.createNewFile();
             } catch (IOException e) {
+                DebugLog.e(TOG_FLAG, "getLogFile IOException :" + e.toString());
                 e.printStackTrace();
             }
         }
         return file;
     }
 
-    public static void d(String TAG, String methodName, String info) {
-        Log.d(TOG_FLAG, TAG + " ---> " + methodName + " ---> " + info);
-        writeCommonLog(info);
-    }
-
-    public static void e(String TAG, String methodName, String info) {
-        Log.e(TOG_FLAG, TAG + " ---> " + methodName + " ---> " + info);
-        writeCommonLog(info);
-    }
-
-    public static void i(String TAG, String methodName, Object info) {
-        Log.i(TOG_FLAG, TAG + " ---> " + methodName + " ---> " + info);
-        writeCommonLog(info.toString());
-    }
-
-    public static void v(String TAG, String methodName, String info) {
-        Log.v(TOG_FLAG, TAG + " ---> " + methodName + " ---> " + info);
-        writeCommonLog(info);
-    }
-
-    public static void w(String TAG, String methodName, String info) {
-        Log.w(TOG_FLAG, TAG + " ---> " + methodName + " ---> " + info);
-        writeCommonLog(info);
-    }
-
-    public static void write(String TAG, String lable, String info, boolean isTimeSensitive) {
-        Log.w(TOG_FLAG, TAG + " ---> " + lable + " ---> " + info);
+    public void write(String TAG, String lable, String info, boolean isTimeSensitive) {
+        DebugLog.d(TOG_FLAG, TAG + " ---> " + lable + " ---> " + info);
         long time = System.currentTimeMillis();
         LogItem logItem = new LogItem(time, info, isTimeSensitive);
         if (!isTimeSensitive) {
@@ -92,19 +103,27 @@ public class LogTrace {
         writeToFile(logItem.getLog());
     }
 
-    public synchronized static void writeCommonLog(String info) {
+    public void writeCommonLog(String info) {
         long time = System.currentTimeMillis();
         writeToFile(String.format(Constants.TimeF_HM, time) + " : " + info);
     }
 
-    private synchronized static void writeToFile(String info) {
-
+    private void writeToFile(String info) {
+        if (outputStream == null) {
+            init();
+            DebugLog.e(TOG_FLAG, "writeToFile outputStream :" + outputStream);
+        }
         try {
             outputStream.write((info + "\n").getBytes());
             outputStream.flush();
         } catch (FileNotFoundException e) {
+            DebugLog.e(TOG_FLAG, "writeToFile FileNotFoundException :" + e.toString());
             e.printStackTrace();
         } catch (IOException e) {
+            DebugLog.e(TOG_FLAG, "writeToFile IOException :" + e.toString());
+            e.printStackTrace();
+        } catch (Exception e) {
+            DebugLog.e(TOG_FLAG, "writeToFile Exception :" + e.toString());
             e.printStackTrace();
         }
     }

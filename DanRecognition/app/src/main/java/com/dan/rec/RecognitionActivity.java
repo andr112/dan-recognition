@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.TextView;
@@ -15,6 +14,7 @@ import com.dan.rec.bean.DetectedActivitiesIntentService;
 import com.dan.rec.bean.DetectionBroadcastReceiver;
 import com.dan.rec.utils.Constants;
 import com.dan.rec.utils.DebugLog;
+import com.dan.rec.utils.LogTrace;
 import com.dan.rec.view.RecCurrentHolder;
 import com.dan.rec.view.RecHistoryHolder;
 import com.google.android.gms.common.ConnectionResult;
@@ -42,6 +42,7 @@ public class RecognitionActivity extends ActionBarActivity implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DebugLog.i(TAG, "onCreate ...");
         setContentView(R.layout.activity_recognition);
         powerManager = (PowerManager) this.getSystemService(this.POWER_SERVICE);
         wakeLock = this.powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "My Lock");
@@ -63,6 +64,7 @@ public class RecognitionActivity extends ActionBarActivity implements
      * ActivityRecognition API.
      */
     protected synchronized void buildGoogleApiClient() {
+        DebugLog.i(TAG, "buildGoogleApiClient ...");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -73,19 +75,23 @@ public class RecognitionActivity extends ActionBarActivity implements
     @Override
     protected void onStart() {
         super.onStart();
+        DebugLog.i(TAG, "onStart ...");
         mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        DebugLog.i(TAG, "onStop ...");
         mGoogleApiClient.disconnect();
+        LogTrace.getInstance().clean();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver,
+        DebugLog.i(TAG, "onResume ...");
+        registerReceiver(mBroadcastReceiver,
                 new IntentFilter(Constants.BROADCAST_ACTION));
         wakeLock.acquire();
         Constants.updateFlag(true);
@@ -93,7 +99,8 @@ public class RecognitionActivity extends ActionBarActivity implements
 
     @Override
     protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        DebugLog.i(TAG, "onPause ...");
+        unregisterReceiver(mBroadcastReceiver);
         wakeLock.release();
         super.onPause();
         Constants.updateFlag(false);
@@ -119,10 +126,12 @@ public class RecognitionActivity extends ActionBarActivity implements
 
     public void onRequestClick(View view) {
         if (!mGoogleApiClient.isConnected()) {
-            Toast.makeText(this, getString(R.string.not_connected),
-                    Toast.LENGTH_SHORT).show();
+            String tip = getString(R.string.not_connected);
+            Toast.makeText(this, tip, Toast.LENGTH_SHORT).show();
+            DebugLog.i(TAG, "onRequestClick " + tip);
             return;
         }
+        DebugLog.i(TAG, "onRequestClick");
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
                 mGoogleApiClient,
                 Constants.DETECTION_INTERVAL_IN_MILLISECONDS,
@@ -133,11 +142,14 @@ public class RecognitionActivity extends ActionBarActivity implements
 
     public void onRemoveClick(View view) {
         if (!mGoogleApiClient.isConnected()) {
-            Toast.makeText(this, getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
+            String tip = getString(R.string.not_connected);
+            Toast.makeText(this, tip, Toast.LENGTH_SHORT).show();
+            DebugLog.i(TAG, "onRemoveClick " + tip);
             return;
         }
         // Remove all activity updates for the PendingIntent that was used to request activity
         // updates.
+        DebugLog.i(TAG, "onRemoveClick");
         ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(
                 mGoogleApiClient,
                 getActivityDetectionPendingIntent()

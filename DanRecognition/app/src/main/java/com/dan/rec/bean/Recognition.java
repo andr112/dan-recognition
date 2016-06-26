@@ -1,8 +1,5 @@
 package com.dan.rec.bean;
 
-import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
-
 import com.dan.rec.RecognitionApplication;
 import com.dan.rec.utils.Constants;
 import com.dan.rec.utils.DebugLog;
@@ -22,7 +19,6 @@ public class Recognition {
     private boolean isNeedInited = true;
     private boolean isByMax = true;
     private int confidenceTotal;
-    private int maxConfidenceType;
     private Map<Integer, Integer> actMap;
     private ActRecordTime time;
     private static Recognition instence = new Recognition();
@@ -40,8 +36,9 @@ public class Recognition {
         isNeedInited = false;
     }
 
-    public synchronized ArrayList<DetectedActivity> weightedMean(ArrayList<DetectedActivity> detectedActivities) throws Exception {
+    public synchronized ArrayList<DetectedActivity> weightedMean(ArrayList<DetectedActivity> detectedActivities) {
         ArrayList<DetectedActivity> result = null;
+        DebugLog.i(tag, "weightedMean Log_flag : " + Constants.Log_flag);
         if (Constants.Log_flag == 1) {
             if (isByMax) {
                 result = weightedMeanByMax(detectedActivities);
@@ -49,7 +46,7 @@ public class Recognition {
                 weightedMeanByAverage(detectedActivities);
             }
         } else if (Constants.Log_flag == 0) {
-            LogTrace.writeCommonLog("System Warn : App start to Background ...");
+            LogTrace.getInstance().writeCommonLog("System Warn : App start to Background ...");
             Constants.updateFlag(false);
             reset();
         }
@@ -92,7 +89,6 @@ public class Recognition {
             actMap.clear();
         }
         confidenceTotal = 0;
-        maxConfidenceType = InvalidType;
     }
 
     private void packDatas(ArrayList<DetectedActivity> detectedActivities) {
@@ -104,7 +100,6 @@ public class Recognition {
     }
 
     private void updateToActMap(int actType, int actConfidence) {
-        int lastMaxC = Math.max(maxConfidenceType != InvalidType ? actMap.get(maxConfidenceType) : 0, 0);
         if (actConfidence > 0) {
             confidenceTotal += actConfidence;
             int confidence = actMap.containsKey(actType) ? actMap.get(actType) : 0;
@@ -114,9 +109,6 @@ public class Recognition {
                 confidence = actConfidence;
             }
             actMap.put(actType, confidence);
-            if (confidence > lastMaxC) {
-                maxConfidenceType = actType;
-            }
         }
         DebugLog.d(tag, "updateToActMap :" + actType + "," + actConfidence);
         writeLog(actType, actConfidence);
@@ -144,31 +136,45 @@ public class Recognition {
                 updateToActMap(DetectedActivity.UNKNOWN, maxConfidenceAct.getConfidence());
                 break;
         }
-
-        if (time.isRipe() && maxConfidenceType != DetectedActivity.UNKNOWN) {
-            int maxC = actMap.get(maxConfidenceType);
-            int confidence = (maxC * 100) / confidenceTotal;
-            if (confidence > 50) {
-                result = new ArrayList<>();
-                for (Map.Entry<Integer, Integer> entry : actMap.entrySet()) {
-                    System.out.println(entry.getKey() + "--->" + entry.getValue());
-                    confidence = (entry.getValue() * 100) / confidenceTotal;
-                    result.add(new DetectedActivity(entry.getKey(), confidence));
+        int maxType = getMaxConfidenceType();
+        if (time.isRipe() && maxType != DetectedActivity.UNKNOWN) {
+            result = new ArrayList<>();
+            for (Map.Entry<Integer, Integer> entry : actMap.entrySet()) {
+                DebugLog.d(tag, entry.getKey() + "--->" + entry.getValue());
+                Integer type = entry.getKey();
+                int confidence = (entry.getValue() * 100) / confidenceTotal;
+                result.add(new DetectedActivity(type, confidence));
+                if (confidence > 50) {
+                    writeLog(confidence, type);
                 }
-                writeLog(confidence);
-                reset();
             }
+            reset();
         }
         return result;
+    }
+
+    private int getMaxConfidenceType() {
+        int maxtType = DetectedActivity.UNKNOWN;
+        for (Map.Entry<Integer, Integer> entry : actMap.entrySet()) {
+            Integer key = entry.getKey();
+            // System.out.println(key + "--->" + entry.getValue());
+            int confidence = (entry.getValue() * 100) / confidenceTotal;
+            if (confidence > 50) {
+                maxtType = key;
+            }
+        }
+        return maxtType;
     }
 
     private DetectedActivity getMaxConfidenceActivity(ArrayList<DetectedActivity> detectedActivities) {
         DetectedActivity result = detectedActivities.get(0);
         for (DetectedActivity item : detectedActivities) {
+            DebugLog.i(tag, "getMaxConfidenceActivity  : " + item.toString());
             if (item.getConfidence() > result.getConfidence()) {
                 result = item;
             }
         }
+        DebugLog.i(tag, "getMaxConfidenceActivity result : " + result.toString());
         return result;
     }
 
@@ -177,8 +183,8 @@ public class Recognition {
         packDatas(detectedActivities);
     }
 
-    private void writeLog(float confidence) {
-        ActType type = getActType(maxConfidenceType);
+    private void writeLog(float confidence, Integer cType) {
+        ActType type = getActType(cType);
         if (type == null) {
             return;
         }
@@ -186,14 +192,11 @@ public class Recognition {
         String actN = RecognitionApplication.getContext().getResources().getString(resId);
         weightedResultStr = actN;
         float confidenceF = confidence / 100.0f;
-        LogTrace.write(tag, " result ", "result : " + weightedResultStr + Block_Str + confidenceF, false);
-        Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
-        localIntent.putExtra(Constants.ACTIVITY_EXTRA_TYPE, weightedResultStr);
-        LocalBroadcastManager.getInstance(RecognitionApplication.getContext()).sendBroadcast(localIntent);
+        LogTrace.getInstance().write(tag, " result ", "result : " + weightedResultStr + Block_Str + confidenceF, false);
     }
 
     private void writeLog(int actType, int actConfidence) {
         String actN = Constants.getActivityString(RecognitionApplication.getContext(), actType);
-        LogTrace.write(tag, "writeLog item ", actN + Block_Str + actConfidence, true);
+        LogTrace.getInstance().write(tag, "writeLog item ", actN + Block_Str + actConfidence, true);
     }
 }

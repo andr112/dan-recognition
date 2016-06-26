@@ -34,7 +34,7 @@ public class RecognitionApplication extends LitePalApplication {
         if (Debug.isDebuggerConnected()) {
             killProcessMySelf(this);
         }
-        LogTrace.init(this);
+        LogTrace.getInstance().init();
         Recognition.getInstence().init();
     }
 

@@ -1,15 +1,18 @@
 package com.dan.rec.utils;
 
+import android.os.Build;
 import android.util.Log;
+
+import com.dan.rec.BuildConfig;
 
 /**
  * Created by zhangdan on 16/4/16.
  */
 public class DebugLog {
-    private static String Tag = "xixitest";
+    private static String Tag = "xixitest"+ BuildConfig.VERSION_NAME;
 
     public static void d(String tag, String info) {
-        Log.d(Tag, tag + " --> " + info);
+        Log.d(Tag, Build.MANUFACTURER + "_" + Build.MODEL + " --> " + tag + " --> " + info);
     }
 
     public static void i(String tag, String info) {
