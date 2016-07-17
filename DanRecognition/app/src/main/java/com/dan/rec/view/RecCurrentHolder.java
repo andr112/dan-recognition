@@ -90,6 +90,7 @@ public class RecCurrentHolder implements ResultCallback<Status>, DetectionUpdate
 
     @Override
     public void updates(ArrayList<DetectedActivity> updatedActivities) {
+        DebugLog.d(TAG, "updates : " + updatedActivities);
         if (updatedActivities != null) {
             updateDetectedActivitiesList(updatedActivities);
             if (updatedActivities.size() >= 0) {

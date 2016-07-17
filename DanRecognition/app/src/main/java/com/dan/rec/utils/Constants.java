@@ -30,8 +30,6 @@ public final class Constants {
     public static final String TimeF_HM = "%tF %<tR";
     public static final String TimeF_HMS = "%tF %<tT";
 
-    public static int Log_flag = 1;
-
     /**
      * The desired time between activity detections. Larger values result in fewer activity
      * detections while improving battery life. A value of 0 results in activity detections at the
@@ -79,14 +77,6 @@ public final class Constants {
                 return resources.getString(R.string.walking);
             default:
                 return resources.getString(R.string.unidentifiable_activity, detectedActivityType);
-        }
-    }
-
-    public static void updateFlag(boolean isInit) {
-        if (isInit) {
-            Log_flag = 1;
-        } else {
-            Log_flag--;
         }
     }
 

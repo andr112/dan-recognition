@@ -52,9 +52,8 @@ public class DetectedActivitiesIntentService extends IntentService {
         ArrayList<DetectedActivity> detectedActivity = Recognition.getInstence().weightedMean(detectedActivities);
         if (detectedActivity != null && detectedActivity.size() > 0) {
             localIntent.putExtra(Constants.ACTIVITY_EXTRA, detectedActivity);
-        } else {
         }
-        DebugLog.e(TAG, " onHandleIntent : " + detectedActivity);
+        DebugLog.d(TAG, " onHandleIntent : " + detectedActivity);
 
         // Broadcast the list of detected activities.
         // localIntent.putExtra(Constants.ACTIVITY_EXTRA, detectedActivities);

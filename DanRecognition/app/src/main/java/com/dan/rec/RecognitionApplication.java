@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Debug;
 
 import com.dan.rec.bean.Recognition;
+import com.dan.rec.utils.DebugLog;
 import com.dan.rec.utils.LogTrace;
 
 import org.litepal.LitePalApplication;
@@ -34,7 +35,9 @@ public class RecognitionApplication extends LitePalApplication {
         if (Debug.isDebuggerConnected()) {
             killProcessMySelf(this);
         }
+        DebugLog.d("xixitest","test...");
         LogTrace.getInstance().init();
+        LogTrace.getInstance().writeCommonLog("test....");
         Recognition.getInstence().init();
     }
 

@@ -8,8 +8,8 @@ android {
         applicationId "com.dan.rec"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 7
-        versionName "2.6"
+        versionCode 9
+        versionName "3.0"
         multiDexEnabled true
     }
     lintOptions {
@@ -17,12 +17,6 @@ android {
         abortOnError false
     }
     signingConfigs {
-        debug {
-            storeFile file("../../ccappkey.jks")
-            storePassword 'ccapp741953'
-            keyAlias 'ccalias'
-            keyPassword 'cc,123'
-        }
         release {
             storeFile file("../../ccappkey.jks")
             storePassword 'ccapp741953'
@@ -40,8 +34,6 @@ android {
         debug {
             minifyEnabled true
             zipAlignEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.debug
         }
     }
 }

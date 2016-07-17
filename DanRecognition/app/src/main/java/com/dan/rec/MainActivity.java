@@ -7,8 +7,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.dan.rec.utils.Constants;
-
 public class MainActivity extends ListActivity {
     private ListView listView = null;
     private String[] datas = {
@@ -26,7 +24,6 @@ public class MainActivity extends ListActivity {
         ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, datas);
         listView.setAdapter(adapter);
         size = Math.min(datas.length, toClasses.length);
-        Constants.updateFlag(true);
     }
 
     @Override

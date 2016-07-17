@@ -77,6 +77,8 @@ public class RecognitionActivity extends ActionBarActivity implements
         super.onStart();
         DebugLog.i(TAG, "onStart ...");
         mGoogleApiClient.connect();
+        DebugLog.d("xixitest","test1...");
+        LogTrace.getInstance().writeCommonLog("test.111...");
     }
 
     @Override
@@ -94,7 +96,6 @@ public class RecognitionActivity extends ActionBarActivity implements
         registerReceiver(mBroadcastReceiver,
                 new IntentFilter(Constants.BROADCAST_ACTION));
         wakeLock.acquire();
-        Constants.updateFlag(true);
     }
 
     @Override
@@ -103,7 +104,6 @@ public class RecognitionActivity extends ActionBarActivity implements
         unregisterReceiver(mBroadcastReceiver);
         wakeLock.release();
         super.onPause();
-        Constants.updateFlag(false);
     }
 
 

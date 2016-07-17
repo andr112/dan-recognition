@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * @创建时间: 16/5/21 11:40
  */
 public class DetectionBroadcastReceiver extends BroadcastReceiver {
-    protected static final String TAG = "activity-detection-response-receiver";
+    protected static final String TAG = "DetectionReceiver";
     DetectionUpdateListener mUpdateListener;
 
     public DetectionBroadcastReceiver(DetectionUpdateListener updateListener) {
@@ -29,9 +29,8 @@ public class DetectionBroadcastReceiver extends BroadcastReceiver {
         //         intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
         // updateDetectedActivitiesList(updatedActivities);
         ArrayList<DetectedActivity> updatedActivities = intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
-        DebugLog.d(TAG, "onReceive updatedActivities : " + updatedActivities);
-        DebugLog.d(TAG, "onReceive mUpdateListener : " + mUpdateListener);
         if (mUpdateListener != null) {
+            DebugLog.d(TAG, "onReceive updatedActivities : " + updatedActivities);
             mUpdateListener.updates(updatedActivities);
         }
     }

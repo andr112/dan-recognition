@@ -15,7 +15,6 @@ import java.util.Map;
  */
 public class Recognition {
     private final String tag = "Recognition";
-    private final int InvalidType = -1;
     private boolean isNeedInited = true;
     private boolean isByMax = true;
     private int confidenceTotal;
@@ -38,17 +37,10 @@ public class Recognition {
 
     public synchronized ArrayList<DetectedActivity> weightedMean(ArrayList<DetectedActivity> detectedActivities) {
         ArrayList<DetectedActivity> result = null;
-        DebugLog.i(tag, "weightedMean Log_flag : " + Constants.Log_flag);
-        if (Constants.Log_flag == 1) {
-            if (isByMax) {
-                result = weightedMeanByMax(detectedActivities);
-            } else {
-                weightedMeanByAverage(detectedActivities);
-            }
-        } else if (Constants.Log_flag == 0) {
-            LogTrace.getInstance().writeCommonLog("System Warn : App start to Background ...");
-            Constants.updateFlag(false);
-            reset();
+        if (isByMax) {
+            result = weightedMeanByMax(detectedActivities);
+        } else {
+            weightedMeanByAverage(detectedActivities);
         }
 
         return result;

@@ -64,6 +64,7 @@ public class LogTrace {
         boolean isSDCardExist = Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
         // Environment.getExternalStorageDirectory()相当于File file=new File("/sdcard")
         boolean isRootDirExist = Environment.getExternalStorageDirectory().exists();
+        DebugLog.e(TOG_FLAG, "getFilePath isSDCardExist : " +isSDCardExist+" "+ isRootDirExist);
         if (isSDCardExist && isRootDirExist) {
             file_dir = Environment.getExternalStorageDirectory().getAbsolutePath();
         } else {
