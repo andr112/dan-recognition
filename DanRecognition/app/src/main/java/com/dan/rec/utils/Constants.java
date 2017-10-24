@@ -1,9 +1,13 @@
 package com.dan.rec.utils;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 
 import com.dan.rec.R;
+import com.dan.rec.RecognitionApplication;
+import com.dan.rec.bean.DetectedActivitiesIntentService;
 import com.google.android.gms.location.DetectedActivity;
 
 /**
@@ -16,6 +20,11 @@ public final class Constants {
 
     public static final String PACKAGE_NAME = "com.dan.rec";
     public static final String BROADCAST_ACTION = "com.dan.rec.BROADCAST_ACTION";
+    public static final String BROADCAST_ACTION_STATUS = "com.dan.rec.BROADCAST_ACTION_STATUS";
+    public static final String BROADCAST_ACTION_REC = "com.dan.rec.BROADCAST_ACTION_REC";
+    public static final String BROADCAST_ACTION_DET = "com.dan.rec.BROADCAST_ACTION_DET";
+
+    public static final String ACTIVITY_EXTRA_STATUS = PACKAGE_NAME + ".ACTIVITY_EXTRA_STATUS";
     public static final String ACTIVITY_EXTRA = PACKAGE_NAME + ".ACTIVITY_EXTRA";
     public static final String ACTIVITY_EXTRA_TYPE = PACKAGE_NAME + ".ACTIVITY_EXTRA_TYPE";
 
@@ -36,7 +45,10 @@ public final class Constants {
      * fastest possible rate. Getting frequent updates negatively impact battery life and a real
      * app may prefer to request less frequent updates.
      */
-    public static final long DETECTION_INTERVAL_IN_MILLISECONDS = 3000;
+    public static final int MILLISECONDS_PER_SECOND = 1000;
+    public static final int DETECTION_INTERVAL_SECONDS = 20;
+    public static final int DETECTION_INTERVAL_MILLISECONDS =
+            MILLISECONDS_PER_SECOND * DETECTION_INTERVAL_SECONDS;
 
     /**
      * List of DetectedActivity types that we monitor in this sample.
@@ -79,5 +91,20 @@ public final class Constants {
                 return resources.getString(R.string.unidentifiable_activity, detectedActivityType);
         }
     }
+
+    /**
+     * Gets a PendingIntent to be sent for each activity detection.
+     */
+    public static PendingIntent getActivityDetectionPendingIntent(Context context) {
+        if (context == null) {
+            context = RecognitionApplication.getContext();
+        }
+        Intent intent = new Intent(context, DetectedActivitiesIntentService.class);
+
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
+        // requestActivityUpdates() and removeActivityUpdates().
+        return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
 
 }

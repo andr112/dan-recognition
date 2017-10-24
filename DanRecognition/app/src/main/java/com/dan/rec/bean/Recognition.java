@@ -36,6 +36,11 @@ public class Recognition {
     }
 
     public synchronized ArrayList<DetectedActivity> weightedMean(ArrayList<DetectedActivity> detectedActivities) {
+        DebugLog.d(tag, " weightedMean isByMax : " + detectedActivities);
+        if (detectedActivities == null || detectedActivities.size() <= 0) {
+            DebugLog.e(tag, " weightedMean detectedActivities == null || detectedActivities.size() <= 0 !!! ");
+            return null;
+        }
         ArrayList<DetectedActivity> result = null;
         if (isByMax) {
             result = weightedMeanByMax(detectedActivities);

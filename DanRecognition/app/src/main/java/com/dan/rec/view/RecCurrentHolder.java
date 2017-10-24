@@ -1,23 +1,19 @@
 package com.dan.rec.view;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.dan.rec.R;
+import com.dan.rec.RecGAClientHolper;
 import com.dan.rec.RecognitionApplication;
 import com.dan.rec.bean.DetectionUpdateListener;
 import com.dan.rec.utils.Constants;
 import com.dan.rec.utils.DebugLog;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.DetectedActivity;
 
 import java.text.SimpleDateFormat;
@@ -30,7 +26,7 @@ import java.util.Date;
  * @创建时间: 16/5/21 10:44
  */
 
-public class RecCurrentHolder implements ResultCallback<Status>, DetectionUpdateListener {
+public class RecCurrentHolder implements DetectionUpdateListener {
 
     private final String TAG = "RecCurrentHolder";
     private View mRootView; // UI elements.
@@ -49,10 +45,8 @@ public class RecCurrentHolder implements ResultCallback<Status>, DetectionUpdate
      */
     private DetectedActivitiesAdapter mAdapter;
 
-
     private ArrayList<DetectedActivity> mDetectedActivities;
     private String mResultStr;
-
 
     public RecCurrentHolder() {
         mContext = RecognitionApplication.getContext();
@@ -154,24 +148,6 @@ public class RecCurrentHolder implements ResultCallback<Status>, DetectionUpdate
         return result;
     }
 
-    @Override
-    public void onResult(Status status) {
-        if (status.isSuccess()) {
-            // Toggle the status of activity updates requested, and save in shared preferences.
-            boolean requestingUpdates = !getUpdatesRequestedState();
-            setUpdatesRequestedState(requestingUpdates);
-
-            // Update the UI. Requesting activity updates enables the Remove Activity Updates
-            // button, and removing activity updates enables the Add Activity Updates button.
-            setButtonsEnabledState();
-            String tip = mContext.getString(requestingUpdates ? R.string.activity_updates_added :
-                    R.string.activity_updates_removed);
-            Toast.makeText(mContext, tip, Toast.LENGTH_SHORT).show();
-        } else {
-            DebugLog.e(TAG, "onResult : Error adding or removing activity detection: " + status.getStatusMessage());
-        }
-    }
-
     private void init(View rootView) {
         this.mRootView = rootView;
         mRequestBt = (Button) rootView.findViewById(R.id.request_activity_updates_button);
@@ -181,8 +157,8 @@ public class RecCurrentHolder implements ResultCallback<Status>, DetectionUpdate
 
     }
 
-    private void setButtonsEnabledState() {
-        if (getUpdatesRequestedState()) {
+    public void setButtonsEnabledState() {
+        if (RecGAClientHolper.getUpdatesRequestedState()) {
             mRequestBt.setEnabled(false);
             mRemoveBt.setEnabled(true);
         } else {
@@ -191,21 +167,8 @@ public class RecCurrentHolder implements ResultCallback<Status>, DetectionUpdate
         }
     }
 
-    private SharedPreferences getSharedPreferencesInstance() {
-        return RecognitionApplication.getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, Activity.MODE_PRIVATE);
-    }
-
-
-    private boolean getUpdatesRequestedState() {
-        return getSharedPreferencesInstance()
-                .getBoolean(Constants.ACTIVITY_UPDATES_REQUESTED_KEY, false);
-    }
-
-
-    private void setUpdatesRequestedState(boolean requestingUpdates) {
-        getSharedPreferencesInstance()
-                .edit()
-                .putBoolean(Constants.ACTIVITY_UPDATES_REQUESTED_KEY, requestingUpdates)
-                .commit();
+    @Override
+    public void updatesForStatusChanged() {
+        setButtonsEnabledState();
     }
 }

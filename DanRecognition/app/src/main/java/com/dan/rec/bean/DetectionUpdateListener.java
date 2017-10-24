@@ -11,4 +11,5 @@ import java.util.ArrayList;
  */
 public interface DetectionUpdateListener {
    void updates( ArrayList<DetectedActivity> updatedActivities);
+   void updatesForStatusChanged();
 }

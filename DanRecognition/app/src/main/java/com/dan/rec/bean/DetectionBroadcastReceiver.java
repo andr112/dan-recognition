@@ -28,11 +28,16 @@ public class DetectionBroadcastReceiver extends BroadcastReceiver {
         // ArrayList<DetectedActivity> updatedActivities =
         //         intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
         // updateDetectedActivitiesList(updatedActivities);
+        String action = intent.getAction();
+        DebugLog.d(TAG, "onReceive action : " + action);
         ArrayList<DetectedActivity> updatedActivities = intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
-        if (mUpdateListener != null) {
+        if (mUpdateListener != null && mUpdateListener != null) {
             DebugLog.d(TAG, "onReceive updatedActivities : " + updatedActivities);
             mUpdateListener.updates(updatedActivities);
+        } else if (Constants.BROADCAST_ACTION_STATUS.equals(action) && mUpdateListener != null) {
+            mUpdateListener.updatesForStatusChanged();
         }
+
     }
 
 

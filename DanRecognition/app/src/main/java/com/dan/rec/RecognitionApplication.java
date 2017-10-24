@@ -35,10 +35,16 @@ public class RecognitionApplication extends LitePalApplication {
         if (Debug.isDebuggerConnected()) {
             killProcessMySelf(this);
         }
-        DebugLog.d("xixitest","test...");
+        DebugLog.d("xixitest", "test...");
         LogTrace.getInstance().init();
-        LogTrace.getInstance().writeCommonLog("test....");
+        //LogTrace.getInstance().writeCommonLog("test....");
         Recognition.getInstence().init();
+        startServer();
+    }
+
+    private void startServer() {
+        Intent intent = new Intent(this, RecServer.class);
+        startService(intent);
     }
 
     private void killProcessMySelf(Context context) {

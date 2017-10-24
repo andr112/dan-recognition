@@ -1,36 +1,25 @@
 package com.dan.rec;
 
-import android.app.PendingIntent;
-import android.content.Intent;
+import android.app.Activity;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.dan.rec.bean.DetectedActivitiesIntentService;
 import com.dan.rec.bean.DetectionBroadcastReceiver;
 import com.dan.rec.utils.Constants;
 import com.dan.rec.utils.DebugLog;
 import com.dan.rec.utils.LogTrace;
 import com.dan.rec.view.RecCurrentHolder;
 import com.dan.rec.view.RecHistoryHolder;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.ActivityRecognition;
 
 
-public class RecognitionActivity extends ActionBarActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener {
+public class RecognitionActivity extends Activity {
     protected final String TAG = "RecognitionActivity";
 
     protected DetectionBroadcastReceiver mBroadcastReceiver;
-
-    protected GoogleApiClient mGoogleApiClient;
 
     private PowerManager powerManager = null;
     private PowerManager.WakeLock wakeLock = null;
@@ -38,11 +27,12 @@ public class RecognitionActivity extends ActionBarActivity implements
     private RecCurrentHolder mRecCurrentHolder;
     private RecHistoryHolder mRecHistoryHolder;
     private TextView mCurOrHistorySwitchTv;
+    private long lastRequestTime;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DebugLog.i(TAG, "onCreate ...");
+        DebugLog.i(TAG, "xixitest onCreate ...");
         setContentView(R.layout.activity_recognition);
         powerManager = (PowerManager) this.getSystemService(this.POWER_SERVICE);
         wakeLock = this.powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "My Lock");
@@ -53,95 +43,76 @@ public class RecognitionActivity extends ActionBarActivity implements
         View hisView = findViewById(R.id.historyLs);
         mRecHistoryHolder = new RecHistoryHolder(hisView);
         mCurOrHistorySwitchTv = (TextView) findViewById(R.id.switchTv);
+        mCurOrHistorySwitchTv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSwitchNowOrHistoryClick(v);
+            }
+        });
         // Get a receiver for broadcasts from ActivityDetectionIntentService.
         mBroadcastReceiver = new DetectionBroadcastReceiver(mRecCurrentHolder);
         // Kick off the request to build GoogleApiClient.
-        buildGoogleApiClient();
+        IntentFilter intentFilter= new IntentFilter(Constants.BROADCAST_ACTION);
+        intentFilter.addAction(Constants.BROADCAST_ACTION_STATUS);
+        registerReceiver(mBroadcastReceiver,intentFilter);
     }
 
-    /**
-     * Builds a GoogleApiClient. Uses the {@code #addApi} method to request the
-     * ActivityRecognition API.
-     */
-    protected synchronized void buildGoogleApiClient() {
-        DebugLog.i(TAG, "buildGoogleApiClient ...");
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(ActivityRecognition.API)
-                .build();
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        DebugLog.d(TAG, "xixitest onDestroy ...");
+        unregisterReceiver(mBroadcastReceiver);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        DebugLog.i(TAG, "onStart ...");
-        mGoogleApiClient.connect();
-        DebugLog.d("xixitest","test1...");
-        LogTrace.getInstance().writeCommonLog("test.111...");
+        DebugLog.d(TAG, "xixitest onStart ...");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        DebugLog.i(TAG, "onStop ...");
-        mGoogleApiClient.disconnect();
+        DebugLog.d(TAG, "xixitest onStop ...");
         LogTrace.getInstance().clean();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        DebugLog.i(TAG, "onResume ...");
-        registerReceiver(mBroadcastReceiver,
-                new IntentFilter(Constants.BROADCAST_ACTION));
+        DebugLog.d(TAG, "xixitest onResume ...");
         wakeLock.acquire();
+        if (mRecCurrentHolder != null) {
+            mRecCurrentHolder.setButtonsEnabledState();
+        }
     }
 
     @Override
     protected void onPause() {
-        DebugLog.i(TAG, "onPause ...");
-        unregisterReceiver(mBroadcastReceiver);
+        DebugLog.d(TAG, "xixitest onPause ...");
         wakeLock.release();
         super.onPause();
     }
 
-
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        DebugLog.i(TAG, "Connected to GoogleApiClient");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        DebugLog.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
-    }
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        DebugLog.i(TAG, "Connection suspended");
-        mGoogleApiClient.connect();
-    }
-
-
     public void onRequestClick(View view) {
-        if (!mGoogleApiClient.isConnected()) {
+        long temp = System.currentTimeMillis();
+        if (temp - lastRequestTime < 500) {
+            return;
+        }
+        lastRequestTime = temp;
+        if (!RecGAClientHolper.getInstance().isConnected()) {
             String tip = getString(R.string.not_connected);
             Toast.makeText(this, tip, Toast.LENGTH_SHORT).show();
             DebugLog.i(TAG, "onRequestClick " + tip);
             return;
         }
-        DebugLog.i(TAG, "onRequestClick");
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
-                mGoogleApiClient,
-                Constants.DETECTION_INTERVAL_IN_MILLISECONDS,
-                getActivityDetectionPendingIntent()
-        ).setResultCallback(mRecCurrentHolder);
+        RecGAClientHolper.getInstance().requestActivityUpdates();
+        mRecCurrentHolder.setButtonsEnabledState();
     }
 
 
     public void onRemoveClick(View view) {
-        if (!mGoogleApiClient.isConnected()) {
+        if (!RecGAClientHolper.getInstance().isConnected()) {
             String tip = getString(R.string.not_connected);
             Toast.makeText(this, tip, Toast.LENGTH_SHORT).show();
             DebugLog.i(TAG, "onRemoveClick " + tip);
@@ -149,14 +120,11 @@ public class RecognitionActivity extends ActionBarActivity implements
         }
         // Remove all activity updates for the PendingIntent that was used to request activity
         // updates.
-        DebugLog.i(TAG, "onRemoveClick");
-        ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(
-                mGoogleApiClient,
-                getActivityDetectionPendingIntent()
-        ).setResultCallback(mRecCurrentHolder);
+        RecGAClientHolper.getInstance().removeActivityUpdates();
     }
 
     public void onSwitchNowOrHistoryClick(View view) {
+        DebugLog.i(TAG, "onSwitchNowOrHistoryClick ");
         mRecHistoryHolder.showOrHide();
         if (mRecHistoryHolder.isShowing()) {
             mCurOrHistorySwitchTv.setText(R.string.current);
@@ -165,21 +133,8 @@ public class RecognitionActivity extends ActionBarActivity implements
         }
     }
 
-    /**
-     * Gets a PendingIntent to be sent for each activity detection.
-     */
-    private PendingIntent getActivityDetectionPendingIntent() {
-        Intent intent = new Intent(this, DetectedActivitiesIntentService.class);
-
-        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
-        // requestActivityUpdates() and removeActivityUpdates().
-        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-
     public void onSaveInstanceState(Bundle savedInstanceState) {
         mRecCurrentHolder.onSaveInstanceState(savedInstanceState);
         super.onSaveInstanceState(savedInstanceState);
     }
-
 }
